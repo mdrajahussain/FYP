@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StegoVault — Hidden in Plain Sight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0a0f;
+        --surface: #12121a;
+        --border: #1e1e2e;
+        --accent: #7c6bff;
+        --accent2: #ff6b9d;
+        --success: #4dffa0;
+        --warning: #ffb84d;
+        --text: #e8e8f0;
+        --muted: #6e6e8a;
+        --card: #15151f;
+        --glow: rgba(124, 107, 255, 0.18);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Syne", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ── noise overlay ── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        background-size: 200px 200px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ── layout ── */
+      .wrapper {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+
+      /* ── header ── */
+      header {
+        text-align: center;
+        padding: 3rem 0 2rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2.5rem;
+      }
+      .logo {
+        font-size: clamp(2.4rem, 6vw, 3.8rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .tagline {
+        color: var(--muted);
+        font-family: "DM Mono", monospace;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        letter-spacing: 0.1em;
+      }
+
+      /* ── status bar ── */
+      .status-bar {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 2rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.8rem;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .dot.on {
+        background: var(--success);
+        box-shadow: 0 0 6px var(--success);
+      }
+      .dot.off {
+        background: var(--warning);
+        box-shadow: 0 0 6px var(--warning);
+      }
+
+      /* ── grid ── */
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      @media (max-width: 700px) {
+        .grid2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ── card ── */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.75rem;
+        transition:
+          border-color 0.25s,
+          box-shadow 0.25s;
+      }
+      .card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 0 24px var(--glow);
+      }
+
+      .card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .card-title .icon {
+        font-size: 1.15rem;
+      }
+
+      /* ── form elements ── */
+      label {
+        display: block;
+        font-family: "DM Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 0.35rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      input[type="text"],
+      input[type="file"],
+      select,
+      textarea {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: 0.85rem;
+        padding: 0.65rem 0.9rem;
+        margin-bottom: 1rem;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        appearance: auto;
+      }
+      input[type="text"]:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--glow);
+      }
+
+      input[type="file"] {
+        padding: 0.5rem 0.9rem;
+        cursor: pointer;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+      select option {
+        background: var(--surface);
+      }
+
+      .field {
+        margin-bottom: 0.5rem;
+      }
+
+      /* ── buttons ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--accent), #9b8dff);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.65rem 1.4rem;
+        font-family: "Syne", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.15s,
+          box-shadow 0.2s,
+          opacity 0.2s;
+        width: 100%;
+        justify-content: center;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(124, 107, 255, 0.4);
+      }
+      .btn:active {
+        transform: translateY(0);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* ── result box ── */
+      .result {
+        margin-top: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem;
+        font-family: "DM Mono", monospace;
+        font-size: 0.8rem;
+        line-height: 1.65;
+        min-height: 50px;
+        color: var(--muted);
+        transition: border-color 0.3s;
+      }
+      .result.has-content {
+        color: var(--text);
+        border-color: var(--accent);
+      }
+      .result.error {
+        border-color: var(--accent2);
+        color: #ff8cb5;
+      }
+      .result.success {
+        border-color: var(--success);
+      }
+
+      .result .label {
+        color: var(--muted);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .result .val {
+        color: var(--success);
+        font-weight: 400;
+        margin-bottom: 0.3rem;
+      }
+      .result pre {
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      /* ── metrics row ── */
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+      .metric-chip {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.45rem 0.65rem;
+      }
+      .metric-chip .m-label {
+        font-size: 0.68rem;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .metric-chip .m-val {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      /* ── download link ── */
+      .dl-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--accent);
+        font-family: "DM Mono", monospace;
+        font-size: 0.8rem;
+        text-decoration: none;
+        margin-top: 0.5rem;
+        transition: color 0.2s;
+      }
+      .dl-link:hover {
+        color: var(--accent2);
+      }
+
+      /* ── section spacer ── */
+      .section-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .section-title span {
+        color: var(--accent);
+      }
+
+      /* ── spinner ── */
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+
+      /* ── full-width chat ── */
+      .card-wide {
+        grid-column: 1 / -1;
+      }
+      .chat-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      @media (max-width: 700px) {
+        .chat-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- Header -->
+      <header>
+        <div class="logo">StegoVault</div>
+        <p class="tagline">
+          // hidden in plain sight — AES-encrypted image steganography
+        </p>
+      </header>
+
+      <!-- Status -->
+      <div class="status-bar" id="statusBar">
+        <span
+          ><span class="dot off" id="ollamaDot"></span
+          ><span id="ollamaLabel">Checking Ollama…</span></span
+        >
+        <span
+          style="margin-left: auto; color: var(--muted)"
+          id="modelLabel"
+        ></span>
+      </div>
+
+      <!-- ── EMBED ── -->
+      <div class="section-title"><span>01</span> Embed Secret</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">🔒</span> Embed Message
+          </div>
+
+          <div class="field">
+            <label>Cover Image</label>
+            <input type="file" id="embedFile" accept="image/*" />
+          </div>
+
+          <div class="field">
+            <label>Secret Message</label>
+            <input
+              type="text"
+              id="secretText"
+              placeholder="Type your secret…"
+            />
+          </div>
+
+          <div class="field">
+            <label>Algorithm</label>
+            <select id="algorithmSelect">
+              <option value="LSB">LSB — Least Significant Bit</option>
+              <option value="DCT">DCT — Discrete Cosine Transform</option>
+            </select>
+          </div>
+
+          <button class="btn" id="embedBtn" onclick="embedSecret()">
+            <span>Embed</span>
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📊</span> Result</div>
+          <div class="result" id="embedResult">Awaiting embed operation…</div>
+        </div>
+      </div>
+
+      <!-- ── EXTRACT ── -->
+      <div class="section-title"><span>02</span> Extract Secret</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">🔓</span> Extract Message
+          </div>
+
+          <div class="field">
+            <label>Stego Image</label>
+            <input type="file" id="extractFile" accept="image/*" />
+          </div>
+
+          <div class="field">
+            <label>Algorithm</label>
+            <select id="extractAlgorithm">
+              <option value="auto">Auto-detect</option>
+              <option value="LSB">LSB</option>
+              <option value="DCT">DCT</option>
+            </select>
+          </div>
+
+          <button class="btn" id="extractBtn" onclick="extractSecret()">
+            <span>Extract</span>
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">📨</span> Recovered Message
+          </div>
+          <div class="result" id="extractResult">
+            Awaiting extract operation…
+          </div>
+        </div>
+      </div>
+
+      <!-- ── QUALITY ── -->
+      <div class="section-title"><span>03</span> Quality Analysis</div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">
+            <span class="icon">🔬</span> Compare Images
+          </div>
+
+          <div class="field">
+            <label>Original Image</label>
+            <input type="file" id="originalFile" accept="image/*" />
+          </div>
+
+          <div class="field">
+            <label>Modified / Stego Image</label>
+            <input type="file" id="modifiedFile" accept="image/*" />
+          </div>
+
+          <button class="btn" id="qualityBtn" onclick="analyzeQuality()">
+            <span>Analyze</span>
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="icon">📈</span> Metrics</div>
+          <div class="result" id="qualityResult">Awaiting analysis…</div>
+        </div>
+      </div>
+
+      <!-- ── CHATBOT ── -->
+      <div class="section-title"><span>04</span> AI Assistant</div>
+      <div class="grid2">
+        <div class="card card-wide">
+          <div class="card-title">
+            <span class="icon">🤖</span> Ask About Steganography
+          </div>
+          <div class="chat-row">
+            <div>
+              <div class="field">
+                <label>Your Question</label>
+                <textarea
+                  id="chatInput"
+                  placeholder="Ask about LSB, DCT, encryption, ethics…"
+                  rows="4"
+                ></textarea>
+              </div>
+              <button class="btn" id="chatBtn" onclick="askChatbot()">
+                <span>Ask AI</span>
+              </button>
+            </div>
+            <div class="result" id="chatResponse" style="min-height: 140px">
+              Awaiting question…
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /wrapper -->
+
+    <script>
+      // ── helpers ──────────────────────────────────────────────────────────────
+      function setLoading(btnId, loading) {
+        const btn = document.getElementById(btnId)
+        if (loading) {
+          btn._orig = btn.innerHTML
+          btn.innerHTML = '<div class="spinner"></div><span>Working…</span>'
+          btn.disabled = true
+        } else {
+          btn.innerHTML = btn._orig
+          btn.disabled = false
+        }
+      }
+
+      function showResult(id, html, type = "") {
+        const el = document.getElementById(id)
+        el.innerHTML = html
+        el.className = "result has-content " + type
+      }
+
+      function metric(label, value, unit = "") {
+        return `<div class="metric-chip">
+      <div class="m-label">${label}</div>
+      <div class="m-val">${typeof value === "number" ? value.toFixed(3) : value}${unit}</div>
+    </div>`
+      }
+
+      // ── status ───────────────────────────────────────────────────────────────
+      async function checkStatus() {
+        try {
+          const d = await fetch("/health").then((r) => r.json())
+          const dot = document.getElementById("ollamaDot")
+          const label = document.getElementById("ollamaLabel")
+          const model = document.getElementById("modelLabel")
+          if (d.ollama_running) {
+            dot.className = "dot on"
+            label.textContent = "Ollama online"
+            model.textContent = d.model || ""
+          } else {
+            dot.className = "dot off"
+            label.textContent = "Ollama offline — chatbot unavailable"
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+
+      // ── embed ─────────────────────────────────────────────────────────────────
+      async function embedSecret() {
+        const file = document.getElementById("embedFile").files[0]
+        const secret = document.getElementById("secretText").value.trim()
+        const algo = document.getElementById("algorithmSelect").value
+
+        if (!file || !secret) {
+          showResult(
+            "embedResult",
+            "⚠ Please select an image and enter a secret message.",
+            "error",
+          )
+          return
+        }
+
+        setLoading("embedBtn", true)
+        const fd = new FormData()
+        fd.append("file", file)
+        fd.append("secret", secret)
+        fd.append("algorithm", algo)
+
+        try {
+          const res = await fetch("/stego/embed", { method: "POST", body: fd })
+          const d = await res.json()
+
+          if (d.success) {
+            const m = d.metrics || {}
+            showResult(
+              "embedResult",
+              `
+          <div class="val">✓ Embedded successfully</div>
+          <div class="label">Algorithm</div><div class="val">${d.algorithm}</div>
+          <div class="label">Output file</div>
+          <a class="dl-link" href="/download/${d.output_file}" target="_blank">⬇ ${d.output_file}</a>
+          ${
+            m.psnr != null
+              ? `
+          <div class="metrics" style="margin-top:.75rem;">
+            ${metric("PSNR", m.psnr, " dB")}
+            ${metric("SSIM", m.ssim)}
+            ${metric("MSE", m.mse)}
+            ${metric("SNR", m.snr, " dB")}
+          </div>`
+              : ""
+          }
+          <div class="label" style="margin-top:.5rem;">Time</div>
+          <div>${(d.embedding_time || 0).toFixed(3)} s</div>
+        `,
+              "success",
+            )
+          } else {
+            showResult("embedResult", `❌ ${d.message}`, "error")
+          }
+        } catch (e) {
+          showResult("embedResult", `❌ Request failed: ${e}`, "error")
+        } finally {
+          setLoading("embedBtn", false)
+        }
+      }
+
+      // ── extract ───────────────────────────────────────────────────────────────
+      async function extractSecret() {
+        const file = document.getElementById("extractFile").files[0]
+        const algo = document.getElementById("extractAlgorithm").value
+
+        if (!file) {
+          showResult("extractResult", "⚠ Please select a stego image.", "error")
+          return
+        }
+
+        setLoading("extractBtn", true)
+        const fd = new FormData()
+        fd.append("file", file)
+        fd.append("algorithm", algo)
+
+        try {
+          const res = await fetch("/stego/extract", {
+            method: "POST",
+            body: fd,
+          })
+          const d = await res.json()
+
+          if (d.success) {
+            showResult(
+              "extractResult",
+              `
+          <div class="val">✓ Extraction successful</div>
+          <div class="label">Algorithm detected</div>
+          <div>${d.details?.algorithm || algo}</div>
+          <div class="label" style="margin-top:.5rem;">Secret message</div>
+          <pre>${escapeHtml(d.secret)}</pre>
+          <div class="label" style="margin-top:.5rem;">Time</div>
+          <div>${(d.extraction_time || 0).toFixed(3)} s</div>
+        `,
+              "success",
+            )
+          } else {
+            showResult("extractResult", `❌ ${d.message}`, "error")
+          }
+        } catch (e) {
+          showResult("extractResult", `❌ Request failed: ${e}`, "error")
+        } finally {
+          setLoading("extractBtn", false)
+        }
+      }
+
+      // ── quality ───────────────────────────────────────────────────────────────
+      async function analyzeQuality() {
+        const orig = document.getElementById("originalFile").files[0]
+        const mod = document.getElementById("modifiedFile").files[0]
+
+        if (!orig || !mod) {
+          showResult("qualityResult", "⚠ Please select both images.", "error")
+          return
+        }
+
+        setLoading("qualityBtn", true)
+        const fd = new FormData()
+        fd.append("original_file", orig)
+        fd.append("modified_file", mod)
+
+        try {
+          const res = await fetch("/metrics/analyze", {
+            method: "POST",
+            body: fd,
+          })
+          const d = await res.json()
+
+          if (d.success) {
+            const m = d.metrics
+            showResult(
+              "qualityResult",
+              `
+          <div class="val">✓ Analysis complete</div>
+          <div class="metrics">
+            ${metric("PSNR", m.psnr, " dB")}
+            ${metric("SSIM", m.ssim)}
+            ${metric("MSE", m.mse)}
+            ${metric("SNR", m.snr, " dB")}
+          </div>
+          <div class="label" style="margin-top:.75rem;">Assessment</div>
+          <div>${d.assessment}</div>
+        `,
+              "success",
+            )
+          } else {
+            showResult("qualityResult", `❌ ${d.message}`, "error")
+          }
+        } catch (e) {
+          showResult("qualityResult", `❌ Request failed: ${e}`, "error")
+        } finally {
+          setLoading("qualityBtn", false)
+        }
+      }
+
+      // ── chatbot ───────────────────────────────────────────────────────────────
+      async function askChatbot() {
+        const query = document.getElementById("chatInput").value.trim()
+        if (!query) {
+          showResult("chatResponse", "⚠ Please enter a question.", "error")
+          return
+        }
+
+        setLoading("chatBtn", true)
+        const fd = new FormData()
+        fd.append("query", query)
+
+        try {
+          const res = await fetch("/chatbot/ask", { method: "POST", body: fd })
+          const d = await res.json()
+
+          if (d.success) {
+            showResult(
+              "chatResponse",
+              `
+          <div class="label">Model: ${d.model}</div>
+          <pre style="margin-top:.5rem;">${escapeHtml(d.response)}</pre>
+        `,
+              "success",
+            )
+          } else {
+            showResult("chatResponse", `❌ ${d.message}`, "error")
+          }
+        } catch (e) {
+          showResult("chatResponse", `❌ Request failed: ${e}`, "error")
+        } finally {
+          setLoading("chatBtn", false)
+        }
+      }
+
+      // ── utils ──────────────────────────────────────────────────────────────────
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+      }
+
+      // ── init ───────────────────────────────────────────────────────────────────
+      checkStatus()
+      setInterval(checkStatus, 30_000)
+    </script>
+  </body>
+</html>

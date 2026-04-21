@@ -1,0 +1,5 @@
+ 'python -m venv env'
+and then '.\env\Scripts\activate'
+and then 'pip install -r requirements.txt'
+and then 'uvicorn main:app --reload --host 0.0.0.0 --port 8000'
+and then go to 'http://127.0.0.1:8000/docs'   

@@ -1,0 +1,29 @@
+# Core dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+# numpy==1.24.3
+numpy==1.26.4
+pillow==10.1.0
+pycryptodome==3.19.0
+requests==2.31.0
+python-multipart==0.0.6
+
+# Image processing
+opencv-python==4.8.1.78
+scipy==1.11.4
+pywavelets==1.5.0
+
+# Audio processing (for echo hiding)
+scipy==1.11.4
+
+# Optional: For better DCT/DWT
+scikit-image==0.22.0
+
+
+
+
+sqlalchemy==2.0.29
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+python-jose[cryptography]==3.3.0
+email-validator==2.1.1
